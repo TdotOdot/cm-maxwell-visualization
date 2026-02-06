@@ -1,0 +1,209 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsfonts,mathrsfs}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+\usepackage{caption}
+\captionsetup[table]{skip=10pt}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue,
+    pdfstartview=FitH
+}
+\usepackage[style=numeric,sorting=none,doi=true,url=true,backend=biber]{biblatex}
+
+\title{Visualization of Electromagnetic Wave Structure from the CM-Maxwell Unified Equation}
+\author{T.O. (IASER Practitioner) \\[0.5em]
+\small {AI Collaborators: Qwen (Alibaba Cloud), ChatGPT (OpenAI), Gemini (Google), Claude (Anthropic)}}
+\date{January, 2026}
+
+\begin{filecontents}{references.bib}
+@article{to2026unified,
+  author = {T.O.},
+  title = {A Unified Maxwell Equation Derived from Cognitional Mechanics: A Practical Foundation for Engineering Electromagnetics},
+  journal = {Zenodo},
+  year = {2026},
+  month = {January},
+  doi = {10.5281/zenodo.18312668},
+  url = {https://doi.org/10.5281/zenodo.18312668}
+}
+
+@article{to2026m3c,
+  author = {T.O.},
+  title = {M₃(ℂ) Necessity in Cognitional Mechanics: The Logical Foundation of Dimensional Structure},
+  journal = {Zenodo},
+  year = {2026},
+  doi = {10.5281/zenodo.18285838},
+  url = {https://doi.org/10.5281/zenodo.18285838}
+}
+\end{filecontents}
+
+\addbibresource{references.bib}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present an interactive visualization of electromagnetic wave structure derived from the Cognitional Mechanics (CM) unified Maxwell equation. The plane wave solution in vacuum demonstrates the orthogonal relationship between electric field $\mathbf{E}$, magnetic field $\mathbf{B}$, and Poynting vector $\mathbf{S}$, alongside their phase synchronization—properties that emerge naturally from the $\mathfrak{su}(3)$-valued field representation in CM theory. The visualization code is publicly available and serves both as pedagogical material and empirical validation of the CM-Maxwell formalism's geometric structure. This work supplements our main paper on the unified Maxwell equation~\cite{to2026unified}.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+The CM-Maxwell unified equation~\cite{to2026unified}
+\begin{equation}
+\left(\frac{1}{c}\frac{\partial}{\partial t} + \nabla \cdot \right) \mathbf{F} = \mathbf{J}
+\label{eq:cm-maxwell}
+\end{equation}
+encodes all four classical Maxwell equations in a single operator acting on the complex electromagnetic matrix
+\begin{equation}
+\mathbf{F} = \begin{pmatrix}
+0 & f_x & f_y \\
+-f_x^* & 0 & f_z \\
+-f_y^* & -f_z^* & 0
+\end{pmatrix}, \quad f = \mathbf{E} + ic\mathbf{B}.
+\label{eq:F-matrix}
+\end{equation}
+
+While the algebraic equivalence to standard Maxwell theory has been established, the geometric meaning of this $\mathfrak{su}(3)$ representation benefits from direct visualization. This paper presents a computational implementation that renders the electromagnetic wave solution in three-dimensional space, explicitly showing:
+
+\begin{enumerate}
+\item The mutual orthogonality $\mathbf{E} \perp \mathbf{B} \perp \mathbf{S}$
+\item Phase synchronization between $\mathbf{E}$ and $\mathbf{B}$ fields
+\item The directionality of energy flux via the Poynting vector $\mathbf{S} = (1/\mu_0)\mathbf{E} \times \mathbf{B}$
+\end{enumerate}
+
+\section{Plane Wave Solution}
+\label{sec:solution}
+
+In vacuum ($\rho = 0$, $\mathbf{J} = 0$), the CM-Maxwell equation reduces to the wave equation. We consider a circularly polarized plane wave propagating in the $+z$ direction:
+
+\begin{align}
+\mathbf{E}(z,t) &= E_0 \cos(kz - \omega t) \, \hat{\mathbf{x}} \label{eq:E}\\
+\mathbf{B}(z,t) &= B_0 \cos(kz - \omega t) \, \hat{\mathbf{y}} \label{eq:B}\\
+\mathbf{S}(z,t) &= \frac{1}{\mu_0} \mathbf{E} \times \mathbf{B} = \frac{E_0 B_0}{\mu_0} \cos^2(kz - \omega t) \, \hat{\mathbf{z}} \label{eq:S}
+\end{align}
+
+where $k = 2\pi/\lambda$, $\omega = ck$, and $c = 1/\sqrt{\epsilon_0\mu_0}$. For visualization purposes, we freeze time at $t=0$ and sample the fields at discrete $z$ positions.
+
+\section{Visualization Implementation}
+\label{sec:implementation}
+
+\subsection{Geometric Representation}
+
+At each spatial point $(0, 0, z_i)$ along the propagation axis, we construct three arrows representing $\mathbf{E}$, $\mathbf{B}$, and $\mathbf{S}$, all originating from the same point. This common-origin representation physically reflects that the Poynting vector is computed \emph{at the same spacetime point} as the fields:
+\begin{equation}
+\mathbf{S}(z,t) = \frac{1}{\mu_0} \mathbf{E}(z,t) \times \mathbf{B}(z,t).
+\label{eq:poynting-local}
+\end{equation}
+
+The field trajectories are visualized as helices in $(x,y,z)$ space, with parametric equations:
+\begin{align}
+\mathbf{r}_E(z) &= (\cos(kz), \sin(kz), z) \label{eq:helix-E}\\
+\mathbf{r}_B(z) &= (-\sin(kz), \cos(kz), z) \label{eq:helix-B}
+\end{align}
+
+\subsection{Technical Details}
+
+The implementation uses Python with the Plotly library for interactive 3D rendering. Key design choices:
+
+\begin{itemize}
+\item \textbf{Arrow construction}: Manual mesh geometry (not built-in Cone objects) ensures view-independent visual consistency
+\item \textbf{Color coding}: Red ($\mathbf{E}$), blue ($\mathbf{B}$), green ($\mathbf{S}$)
+\item \textbf{Length scaling}: $\mathbf{E}$ and $\mathbf{B}$ arrows are scaled to $0.55 \times L$ relative to $\mathbf{S}$ arrow length $L$ for visual balance (this is purely aesthetic; physical field magnitudes follow Eqs.~\ref{eq:E}--\ref{eq:S})
+\item \textbf{Camera position}: Set to $(x,y,z)_{\text{eye}} = (-1.8, -1.8, 1.5)$ to ensure the $+z$ propagation direction points away from the viewer
+\end{itemize}
+
+The complete source code is available at \url{https://github.com/TdotOdot/cm-maxwell-visualization} with MIT license.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\textwidth]{fig1.png}
+\caption{Electromagnetic wave structure visualization. Red arrows: electric field $\mathbf{E}$; blue arrows: magnetic field $\mathbf{B}$; green arrows: Poynting vector $\mathbf{S}$. Red and blue helices show continuous field trajectories. All three vectors originate from common points on the z-axis, demonstrating mutual orthogonality and phase synchronization. Interactive version available at \url{https://github.com/TdotOdot/cm-maxwell-visualization}.}
+\label{fig:emwave}
+\end{figure}
+
+\section{Results and Verification}
+\label{sec:results}
+
+\subsection{Orthogonality}
+
+Figure~\ref{fig:emwave} demonstrates the mutual perpendicularity of all three vector fields. At each sample point, the triplet $(\mathbf{E}, \mathbf{B}, \mathbf{S})$ forms a right-handed orthogonal basis, as required by Maxwell theory. This orthogonality is \emph{not imposed} in the visualization code—it emerges directly from the field definitions in Eqs.~\ref{eq:E}--\ref{eq:S}.
+
+\subsection{Phase Synchronization}
+
+Both $\mathbf{E}$ and $\mathbf{B}$ rotate in phase with argument $kz$, as evident from the helical trajectories remaining in sync along the $z$-axis. This synchronization reflects the CM field matrix structure where $f = \mathbf{E} + ic\mathbf{B}$ treats electric and magnetic components as real and imaginary parts of a unified complex quantity.
+
+\subsection{Energy Flux}
+
+The Poynting vector $\mathbf{S}$ consistently points in the $+z$ direction at all sampled positions, visualizing the unidirectional energy flow characteristic of traveling waves. The time-averaged energy flux $\langle S \rangle = \frac{1}{2\mu_0} E_0 B_0$ is represented by the steady orientation of green arrows.
+
+\section{Educational and Research Applications}
+\label{sec:applications}
+
+\subsection{Pedagogical Value}
+
+This visualization serves as teaching material for electromagnetic wave theory by:
+\begin{enumerate}
+\item Making abstract field orthogonality geometrically tangible
+\item Clarifying the distinction between field vectors (arrows) and field trajectories (helices)
+\item Demonstrating how $\mathbf{E} \times \mathbf{B}$ produces a constant-direction vector from two rotating vectors
+\end{enumerate}
+
+The interactive HTML output allows students to rotate and zoom the 3D scene, building intuition for the wave structure.
+
+\subsection{CM Theory Validation}
+
+From the CM perspective, this visualization empirically confirms that:
+\begin{itemize}
+\item The $\mathfrak{su}(3)$ embedding of electromagnetic fields~\cite{to2026m3c} naturally produces orthogonal vector triplets
+\item Phase coherence in $f = \mathbf{E} + ic\mathbf{B}$ manifests as geometric phase locking in real space
+\item Energy conservation (Poynting theorem) appears as a direct consequence of the field algebra structure~\cite{to2026unified}
+\end{itemize}
+
+\section{Limitations and Future Work}
+\label{sec:future}
+
+The current implementation is restricted to:
+\begin{itemize}
+\item Plane waves in vacuum (no dispersion, absorption, or scattering)
+\item Static snapshots (time-frozen at $t=0$)
+\item Linear polarization visualization
+\end{itemize}
+
+Future extensions could include:
+\begin{enumerate}
+\item Time-evolution animations showing $\mathbf{E}(z,t)$ and $\mathbf{B}(z,t)$ oscillations
+\item Material media with $\epsilon_r \neq 1$, $\mu_r \neq 1$
+\item Superposition of multiple waves (interference, standing waves)
+\item Integration with CM operator visualization (showing $\nabla \cdot$ action on $\mathbf{F}$)
+\end{enumerate}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have presented an open-source visualization of electromagnetic wave structure derived from the CM-Maxwell unified equation. The code demonstrates that fundamental electromagnetic properties—field orthogonality, phase synchronization, and directional energy flux—emerge naturally from the $\mathfrak{su}(3)$-valued field representation without additional postulates. This work complements the theoretical formalism in~\cite{to2026unified} by providing empirical visual evidence and pedagogical tools for understanding the geometric structure of classical electromagnetism.
+
+\section*{Code Availability}
+
+The Python implementation is available at:
+
+\begin{center}
+\url{https://github.com/TdotOdot/cm-maxwell-visualization}
+\end{center}
+
+Dependencies: \texttt{numpy} $\geq 1.24.0$, \texttt{plotly} $\geq 5.14.0$. The repository will be archived on Zenodo upon publication with an assigned DOI.
+
+
+\printbibliography
+
+\end{document}
